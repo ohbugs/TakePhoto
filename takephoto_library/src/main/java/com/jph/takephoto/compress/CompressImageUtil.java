@@ -4,7 +4,6 @@ import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
 import android.os.Handler;
-import android.os.Message;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -12,9 +11,10 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 
 /**
- * 压缩照片2.0
+ * 压缩照片
  * @author JPH
  * Date 2015-08-26 下午1:44:26
+ * Version:1.0.3
  */
 public class CompressImageUtil implements CompressImage{
 	private CompressConfig config;
@@ -56,10 +56,10 @@ public class CompressImageUtil implements CompressImage{
 				bitmap.compress(Bitmap.CompressFormat.JPEG, options, baos);//质量压缩方法，把压缩后的数据存放到baos中 (100表示不压缩，0表示压缩到最小)
 				while (baos.toByteArray().length >config.getMaxSize()) {//循环判断如果压缩后图片是否大于指定大小,大于继续压缩
 					baos.reset();//重置baos即让下一次的写入覆盖之前的内容 
-					options -= 10;//图片质量每次减少10
-					if(options<0)options=0;//如果图片质量小于0，则将图片的质量压缩到最小值
+					options -= 5;//图片质量每次减少5
+					if(options<=5)options=5;//如果图片质量小于5，为保证压缩后的图片质量，图片最底压缩质量为5
 					bitmap.compress(Bitmap.CompressFormat.JPEG, options, baos);//将压缩后的图片保存到baos中
-					if(options==0)break;//如果图片的质量已降到最低则，不再进行压缩
+					if(options==5)break;//如果图片的质量已降到最低则，不再进行压缩
 				}
 //				if(bitmap!=null&&!bitmap.isRecycled()){
 //					bitmap.recycle();//回收内存中的图片
@@ -97,7 +97,7 @@ public class CompressImageUtil implements CompressImage{
 		int height = newOpts.outHeight;
 		float maxSize =config.getMaxPixel();
 		int be = 1;
-		if (width > height && width > maxSize) {//缩放比,用高或者宽其中较大的一个数据进行计算
+		if (width >= height && width > maxSize) {//缩放比,用高或者宽其中较大的一个数据进行计算
 			be = (int) (newOpts.outWidth / maxSize);
 			be++;
 		} else if (width < height && height > maxSize) {
@@ -113,7 +113,7 @@ public class CompressImageUtil implements CompressImage{
 			compressImageByQuality(bitmap,imgPath,listener);//压缩好比例大小后再进行质量压缩
 		}else {
 			bitmap.compress(Bitmap.CompressFormat.JPEG,100,new FileOutputStream(new File(imgPath)));
-			listener.onCompressSuccessed(imgPath);
+			listener.onCompressSuccess(imgPath);
 		}
 	}
 	/**
@@ -127,7 +127,7 @@ public class CompressImageUtil implements CompressImage{
 			@Override
 			public void run() {
 				if (isSuccess){
-					listener.onCompressSuccessed(imagePath);
+					listener.onCompressSuccess(imagePath);
 				}else{
 					listener.onCompressFailed(imagePath,message);
 				}
